@@ -74,7 +74,7 @@ npm run test:watch # Tests en modo watch
 
 ### Frontend  
 ```bash
-cd posts-frontend
+cd frontend
 npm install
 npm run dev        # Servidor de desarrollo Vite
 npm run build      # Build para producción
@@ -104,7 +104,7 @@ npm run db:migrate
 │   │   └── main/              # Application entry point
 │   ├── Dockerfile
 │   └── docker-compose.yml
-├── posts-frontend/             # React + Redux Toolkit
+├── frontend/             # React + Redux Toolkit
 │   ├── src/
 │   │   ├── app/               # Redux store configuration
 │   │   ├── features/posts/    # Posts feature module
