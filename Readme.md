@@ -45,6 +45,15 @@ cd challenge-react-node
 docker-compose up --build
 ```
 
+### 3. Verificar el Inicio Correcto de los Servicios
+
+Una vez ejecutado el comando anterior, espera a que Docker Compose inicialice todos los servicios.
+El backend estará listo cuando veas en la consola un log similar a:
+
+```bash
+{"level":30,"time":1763076528211,"pid":40,"hostname":"9bd6d63f02ae","msg":"HTTP server running on :3000"}
+```
+
 Este comando:
 - ✅ Construye las imágenes del backend y frontend
 - ✅ Levanta PostgreSQL con datos de prueba
