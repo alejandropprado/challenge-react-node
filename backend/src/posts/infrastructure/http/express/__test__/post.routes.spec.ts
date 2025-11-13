@@ -84,7 +84,7 @@ describe("buildPostRouter Factory", () => {
       const response = await request(app).get("/");
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual([]);
+      expect(response.body).toEqual({ items: [] });
       expect(mockRepository.getAllPosts).toHaveBeenCalledTimes(1);
     });
 
@@ -96,14 +96,16 @@ describe("buildPostRouter Factory", () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(
-        mockPosts.map((post) => ({
+        { 
+          items: mockPosts.map((post) => ({
           ...post.toPrimitive(),
           createdAt: post?.createdAt?.toISOString(),
           updatedAt: post?.updatedAt?.toISOString(),
           deletedAt: post?.deletedAt ? post.deletedAt.toISOString() : undefined,
         }))
+        }
       );
-      expect(response.body).toHaveLength(1);
+      expect(response.body.items).toHaveLength(1);
       expect(mockRepository.getAllPosts).toHaveBeenCalledTimes(1);
     });
 

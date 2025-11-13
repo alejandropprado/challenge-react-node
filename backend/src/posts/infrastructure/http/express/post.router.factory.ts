@@ -15,7 +15,9 @@ export function buildPostRouter(repository: IPostRepository) {
   router.get("/", async (_req, res, next) => {
     try {
       const posts = await listPosts.execute();
-      return res.json(posts);
+      return res.json({
+        items: posts,
+      });
     } catch (e) {
       next(e);
     }

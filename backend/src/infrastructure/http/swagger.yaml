@@ -1,0 +1,270 @@
+openapi: 3.0.3
+info:
+  title: Posts API
+  version: 1.0.0
+  description: API REST para gestionar posts con operaciones CRUD completas
+  contact:
+    name: Alejandro Prado
+  license:
+    name: ISC
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Servidor de desarrollo local
+  - url: https://api.production.com/api/v1
+    description: Servidor de producción
+
+paths:
+  /posts:
+    get:
+      summary: Listar todos los posts
+      description: Obtiene una lista de todos los posts disponibles (no eliminados)
+      operationId: listPosts
+      tags:
+        - Posts
+      responses:
+        '200':
+          description: Lista de posts obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+              example:
+                items:
+                  - id: "123e4567-e89b-12d3-a456-426614174000"
+                    name: "Mi primer post"
+                    description: "Esta es la descripción de mi primer post"
+                    createdAt: "2024-01-15T10:30:00.000Z"
+                    updatedAt: "2024-01-15T10:30:00.000Z"
+                    deletedAt: null
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Crear un nuevo post
+      description: Crea un nuevo post con nombre y descripción válidos
+      operationId: createPost
+      tags:
+        - Posts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+            example:
+              name: "Mi nuevo post"
+              description: "Esta es la descripción de mi nuevo post"
+      responses:
+        '201':
+          description: Post creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174000"
+                name: "Mi nuevo post"
+                description: "Esta es la descripción de mi nuevo post"
+                createdAt: "2024-01-15T10:30:00.000Z"
+                updatedAt: "2024-01-15T10:30:00.000Z"
+                deletedAt: null
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /posts/{id}:
+    delete:
+      summary: Eliminar un post
+      description: Elimina un post mediante soft delete (marcándolo como eliminado sin borrarlo físicamente)
+      operationId: deletePost
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID único del post a eliminar (UUID v4)
+          schema:
+            type: string
+            format: uuid
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Post eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+              example:
+                id: "123e4567-e89b-12d3-a456-426614174000"
+                name: "Post eliminado"
+                description: "Este post fue eliminado"
+                createdAt: "2024-01-15T10:30:00.000Z"
+                updatedAt: "2024-01-15T11:00:00.000Z"
+                deletedAt: "2024-01-15T11:00:00.000Z"
+        '400':
+          $ref: '#/components/responses/InvalidUUID'
+        '404':
+          $ref: '#/components/responses/PostNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    Post:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identificador único del post (UUID v4)
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Nombre descriptivo del post
+          example: "Mi primer post"
+        description:
+          type: string
+          minLength: 1
+          description: Descripción detallada del contenido del post
+          example: "Esta es la descripción completa de mi primer post"
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha y hora de creación del post (ISO 8601)
+          example: "2024-01-15T10:30:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Fecha y hora de la última actualización (ISO 8601)
+          example: "2024-01-15T10:30:00.000Z"
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Fecha y hora de eliminación (soft delete). Null si no está eliminado
+          example: null
+
+    CreatePostRequest:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Nombre del post (entre 1 y 255 caracteres)
+          example: "Mi nuevo post"
+        description:
+          type: string
+          minLength: 1
+          description: Descripción del post (mínimo 1 caracter)
+          example: "Esta es la descripción de mi nuevo post"
+      additionalProperties: false
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Mensaje descriptivo del error ocurrido
+          example: "Error interno del servidor"
+
+    ValidationError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Detalle específico del error de validación
+          examples:
+            - "String must contain at least 1 character(s)"
+            - "String must contain at most 255 character(s)"
+            - "Required"
+
+  responses:
+    ValidationError:
+      description: Error de validación en los datos enviados
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          examples:
+            emptyName:
+              summary: Nombre vacío
+              value:
+                error: "String must contain at least 1 character(s)"
+            nameTooLong:
+              summary: Nombre muy largo
+              value:
+                error: "String must contain at most 255 character(s)"
+            missingField:
+              summary: Campo requerido faltante
+              value:
+                error: "Required"
+
+    InvalidUUID:
+      description: UUID proporcionado no es válido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Invalid PostId: invalid-uuid-format"
+
+    PostNotFound:
+      description: El post solicitado no fue encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Post not found"
+
+    InternalServerError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            databaseError:
+              summary: Error de base de datos
+              value:
+                error: "Database connection failed"
+            genericError:
+              summary: Error genérico
+              value:
+                error: "Internal Server Error"
+
+tags:
+  - name: Posts
+    description: Operaciones CRUD para la gestión de posts
+    externalDocs:
+      description: Documentación adicional
+      url: https://docs.example.com/posts
+
+externalDocs:
+  description: Repositorio del proyecto
+  url: https://github.com/alejandropprado/challenge-react-node
